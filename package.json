@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.8.16",
     "antd": "^5.6.2",
+    "google-protobuf": "^3.21.2",
     "lodash": "^4.17.21",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -26,7 +28,9 @@
     "eslint": "^8.38.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
+    "grpc-web": "^1.4.2",
     "postcss": "^8.4.24",
+    "protoc-gen-ts": "^0.8.6",
     "tailwindcss": "^3.3.2",
     "typescript": "^5.0.2",
     "vite": "^4.3.9"
