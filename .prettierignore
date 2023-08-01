@@ -1,6 +1,3 @@
+package.json
 package-lock.json
-yarn.lock
-node_modules
-build
-.next
-# any other unwanted files or folders
+public
