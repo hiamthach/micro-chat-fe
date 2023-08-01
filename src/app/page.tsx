@@ -29,6 +29,7 @@ export default function Home() {
         <button
           className="btn mt-4 mx-auto"
           onClick={() => {
+            if (!name) return;
             setUser(name);
           }}
         >
