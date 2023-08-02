@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 
 import roomApi from '@/config/api/room.api';
 import { ROOM_SIZE } from '@/config/constants/room.const';
-import { toastHelper } from '@/config/helpers/toast.helper';
+import toastHelper from '@/config/helpers/toast.helper';
 
 import { useLocalStorage } from 'usehooks-ts';
 

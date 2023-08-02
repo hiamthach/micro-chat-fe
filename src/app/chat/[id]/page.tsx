@@ -1,19 +1,23 @@
 'use client';
 
 import { useMutation, useQuery } from '@tanstack/react-query';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import ChatInput from '@/components/features/chat/ChatInput';
 
 import messageApi from '@/config/api/message.api';
 import dateHelper from '@/config/helpers/date.helper';
-import { toastHelper } from '@/config/helpers/toast.helper';
+import socketHelper from '@/config/helpers/socket.helper';
+import toastHelper from '@/config/helpers/toast.helper';
 
 import clsx from 'clsx';
 import { useLocalStorage } from 'usehooks-ts';
 
 const { getMessages, sendMessage } = messageApi;
 const { calPastTime } = dateHelper;
+const { initSocket, getSocket } = socketHelper;
+
+// ChatRoom Component
 const ChatRoom = ({
   params,
 }: {
@@ -23,18 +27,42 @@ const ChatRoom = ({
 }) => {
   const [user] = useLocalStorage<string>('user', '');
 
+  useEffect(() => {
+    initSocket();
+
+    const socket = getSocket();
+
+    // Event listeners for custom events from the server
+    socket.on('/new_message', () => {
+      console.log('Received data from server:');
+      toastHelper.success('New message received');
+      refetch();
+    });
+
+    return () => {
+      socket.off('new_message');
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const {
     data: messages,
     isError,
     isLoading,
     isSuccess,
     refetch,
-  } = useQuery(['messages', params.id], () => {
-    return getMessages({
-      roomId: params.id,
-      username: user,
-    });
-  });
+  } = useQuery(
+    ['messages', params.id],
+    () => {
+      return getMessages({
+        roomId: params.id,
+        username: user,
+      });
+    },
+    {
+      refetchIntervalInBackground: true,
+    },
+  );
 
   const { mutate: handleSend } = useMutation({
     mutationFn: async (message: string) => {

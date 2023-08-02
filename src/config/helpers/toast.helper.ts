@@ -22,9 +22,11 @@ const loading = (message: string) => {
   toast.loading(message);
 };
 
-export const toastHelper = {
+const toastHelper = {
   success,
   error,
   info,
   loading,
 };
+
+export default toastHelper;
