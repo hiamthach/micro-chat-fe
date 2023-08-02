@@ -1,17 +1,18 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import React from 'react';
 
 import ChatInput from '@/components/features/chat/ChatInput';
 
 import messageApi from '@/config/api/message.api';
 import dateHelper from '@/config/helpers/date.helper';
+import { toastHelper } from '@/config/helpers/toast.helper';
 
 import clsx from 'clsx';
 import { useLocalStorage } from 'usehooks-ts';
 
-const { getMessages } = messageApi;
+const { getMessages, sendMessage } = messageApi;
 const { calPastTime } = dateHelper;
 const ChatRoom = ({
   params,
@@ -27,6 +28,7 @@ const ChatRoom = ({
     isError,
     isLoading,
     isSuccess,
+    refetch,
   } = useQuery(['messages', params.id], () => {
     return getMessages({
       roomId: params.id,
@@ -34,9 +36,23 @@ const ChatRoom = ({
     });
   });
 
-  const handleSend = (message: string) => {
-    console.log(message);
-  };
+  const { mutate: handleSend } = useMutation({
+    mutationFn: async (message: string) => {
+      return sendMessage({
+        room_id: params.id,
+        sender_id: user,
+        content: message,
+      });
+    },
+
+    onSuccess: () => {
+      refetch();
+    },
+
+    onError: () => {
+      toastHelper.error("Can't send message");
+    },
+  });
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -49,11 +65,13 @@ const ChatRoom = ({
 
         {isSuccess &&
           messages.messages.map((message) => {
+            const isMe = user === message.sender_id;
+
             return (
-              <div className={clsx('chat', user === message.sender_id ? 'chat-end' : 'chat-start')} key={message.id}>
+              <div className={clsx('chat', isMe ? 'chat-end' : 'chat-start')} key={message.id}>
                 <div className="chat-header">
-                  {message.sender_id}
-                  <time className="text-xs opacity-50">{calPastTime(message.timestamp)}</time>
+                  {isMe ? 'Me' : message.sender_id}
+                  <time className="text-xs opacity-50 ml-1">{calPastTime(message.timestamp)}</time>
                 </div>
                 <div className="chat-bubble">{message.content}</div>
               </div>
