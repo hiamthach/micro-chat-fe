@@ -6,7 +6,7 @@ const ChatLayout = ({ children }: { children: React.ReactNode }) => {
       <div className="sticky top-0 left-0">
         <Sidebar />
       </div>
-      <div className="flex-1 px-8 py-3">{children}</div>
+      <div className="flex-1 px-8 py-4">{children}</div>
     </main>
   );
 };
