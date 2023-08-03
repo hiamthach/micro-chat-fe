@@ -1,3 +1,6 @@
+'use client'
+
+import { withAuth } from '@/hocs/withAuth';
 import Link from 'next/link';
 
 import React from 'react';
@@ -23,4 +26,4 @@ const ChatPage = () => {
   );
 };
 
-export default ChatPage;
+export default withAuth(ChatPage);

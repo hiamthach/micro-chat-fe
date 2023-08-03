@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 
 import './globals.css';
 import { PubNubReactProvider, ReactQueryProvider } from './providers';
+import { AuthProvider } from '@/hooks/useAuth';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,7 +19,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={inter.className}>
         <ReactQueryProvider>
-          <PubNubReactProvider>{children}</PubNubReactProvider>
+          <PubNubReactProvider>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </PubNubReactProvider>
           <Toaster position="top-center" reverseOrder={true} />
         </ReactQueryProvider>
       </body>

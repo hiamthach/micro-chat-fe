@@ -12,7 +12,10 @@ import dateHelper from '@/config/helpers/date.helper';
 import toastHelper from '@/config/helpers/toast.helper';
 
 import clsx from 'clsx';
-import { useLocalStorage } from 'usehooks-ts';
+import AuthConsumer from '@/hooks/useAuth';
+
+import get from "lodash/get"
+import { Message } from '@/config/types/message.type';
 
 const { getMessages, sendMessage } = messageApi;
 const { calPastTime } = dateHelper;
@@ -25,7 +28,7 @@ const ChatRoom = ({
     id: string;
   };
 }) => {
-  const [user] = useLocalStorage<string>('user', '');
+  const { currentUser:user } = AuthConsumer()
 
   const {
     data: messages,
@@ -36,10 +39,14 @@ const ChatRoom = ({
   } = useQuery(
     ['messages', params.id],
     () => {
-      return getMessages({
-        roomId: params.id,
-        username: user,
-      });
+      if (!user) {
+        Promise.reject('User not found')
+      } else {
+        return getMessages({
+          roomId: params.id,
+          username: user,
+        });
+      }
     },
     {
       refetchIntervalInBackground: true,
@@ -48,11 +55,16 @@ const ChatRoom = ({
 
   const { mutate: handleSend } = useMutation({
     mutationFn: async (message: string) => {
-      return sendMessage({
-        room_id: params.id,
-        sender_id: user,
-        content: message,
-      });
+      if (!user) {
+        Promise.reject('User not found')
+      } else {
+        return sendMessage({
+          room_id: params.id,
+          sender_id: user,
+          content: message,
+        });
+      }
+
     },
 
     onSuccess: () => {
@@ -71,7 +83,7 @@ const ChatRoom = ({
     });
 
     pubnub.addListener({
-      message: (event) => {
+      message: () => {
         refetch();
       }
     })
@@ -93,8 +105,7 @@ const ChatRoom = ({
 
         {isError && <span className="text-red-500">Error</span>}
 
-        {isSuccess && messages.messages &&
-          messages.messages.map((message) => {
+        {isSuccess && get(messages, "messages", []).map((message) => {
             const isMe = user === message.sender_id;
 
             return (

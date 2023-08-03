@@ -1,18 +1,20 @@
 'use client';
 
+import AuthConsumer from '@/hooks/useAuth';
 import { useState } from 'react';
 
 import { useIsomorphicLayoutEffect, useLocalStorage } from 'usehooks-ts';
 
 export default function Home() {
   const [name, setName] = useState('');
-  const [user, setUser] = useLocalStorage<string>('user', '');
+
+  const { currentUser, signIn } = AuthConsumer();
 
   useIsomorphicLayoutEffect(() => {
-    if (user) {
+    if (currentUser) {
       window.location.href = '/chat';
     }
-  }, [user]);
+  }, [currentUser]);
 
   return (
     <main className="flex justify-center items-center min-h-screen">
@@ -30,7 +32,7 @@ export default function Home() {
           className="btn mt-4 mx-auto"
           onClick={() => {
             if (!name) return;
-            setUser(name);
+            signIn(name);
           }}
         >
           Next

@@ -8,24 +8,30 @@ import { ROOM_SIZE } from '@/config/constants/room.const';
 import toastHelper from '@/config/helpers/toast.helper';
 
 import { useLocalStorage } from 'usehooks-ts';
+import { withAuth } from '@/hocs/withAuth';
+import AuthConsumer from '@/hooks/useAuth';
 
 const { createRoom, joinRoom } = roomApi;
 
 const JoinPage = () => {
   const [room, setRoom] = useState('');
   const [rooms, setRooms] = useLocalStorage<string[]>('rooms', []);
-  const [user] = useLocalStorage<string>('user', '');
+  const { currentUser: user } = AuthConsumer()
 
   const { mutate: createRoomMutate } = useMutation({
     mutationFn: async () => {
-      return createRoom({
-        owner: user,
-        room_size: ROOM_SIZE,
-      });
+      if (!user) {
+        Promise.reject('User not found')
+      } else {
+        return createRoom({
+          owner: user,
+          room_size: ROOM_SIZE,
+        });
+      }
     },
 
     onSuccess: (data) => {
-      if (data.room && data.room.id) {
+      if (data && data.room && data.room.id) {
         setRooms([...rooms, data.room.id]);
         window.location.href = `/chat/${data.room.id}`;
       }
@@ -38,6 +44,7 @@ const JoinPage = () => {
 
   const { mutate: joinRoomMutate } = useMutation({
     mutationFn: async () => {
+      if (!room || !user) return;
       return joinRoom({
         room_id: room,
         username: user,
@@ -92,4 +99,4 @@ const JoinPage = () => {
   );
 };
 
-export default JoinPage;
+export default withAuth(JoinPage);
