@@ -3,11 +3,12 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 
+import { usePubNub } from 'pubnub-react';
+
 import ChatInput from '@/components/features/chat/ChatInput';
 
 import messageApi from '@/config/api/message.api';
 import dateHelper from '@/config/helpers/date.helper';
-import socketHelper from '@/config/helpers/socket.helper';
 import toastHelper from '@/config/helpers/toast.helper';
 
 import clsx from 'clsx';
@@ -15,7 +16,6 @@ import { useLocalStorage } from 'usehooks-ts';
 
 const { getMessages, sendMessage } = messageApi;
 const { calPastTime } = dateHelper;
-const { initSocket, getSocket } = socketHelper;
 
 // ChatRoom Component
 const ChatRoom = ({
@@ -26,24 +26,6 @@ const ChatRoom = ({
   };
 }) => {
   const [user] = useLocalStorage<string>('user', '');
-
-  useEffect(() => {
-    initSocket();
-
-    const socket = getSocket();
-
-    // Event listeners for custom events from the server
-    socket.on('/new_message', () => {
-      console.log('Received data from server:');
-      toastHelper.success('New message received');
-      refetch();
-    });
-
-    return () => {
-      socket.off('new_message');
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const {
     data: messages,
@@ -74,13 +56,33 @@ const ChatRoom = ({
     },
 
     onSuccess: () => {
-      refetch();
+      // refetch();
     },
 
     onError: () => {
       toastHelper.error("Can't send message");
     },
   });
+
+  const pubnub = usePubNub();
+  useEffect(() => {
+    pubnub.subscribe({
+      channels: [params.id],
+    });
+
+    pubnub.addListener({
+      message: (event) => {
+        refetch();
+      }
+    })
+
+    return () => {
+      pubnub.unsubscribe({
+        channels: [params.id],
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pubnub, params.id])
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -91,7 +93,7 @@ const ChatRoom = ({
 
         {isError && <span className="text-red-500">Error</span>}
 
-        {isSuccess &&
+        {isSuccess && messages.messages &&
           messages.messages.map((message) => {
             const isMe = user === message.sender_id;
 
