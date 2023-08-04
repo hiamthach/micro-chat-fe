@@ -1,7 +1,9 @@
-'use client'
+'use client';
+
+import { TokenResponse, useGoogleLogin } from '@react-oauth/google';
+import React, { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 
 import toastHelper from '@/config/helpers/toast.helper';
-import React, { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 
 import { useLocalStorage } from 'usehooks-ts';
 
@@ -29,13 +31,41 @@ const useAuth = () => {
   const [isAuth, setIsAuth] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentUser, setCurrentUser] = useLocalStorage<string | null>('user', null);
-  
+
   const handleSignOut = async () => {
     setIsAuth(false);
     setCurrentUser(null);
     setLoading(false);
     toastHelper.success('Logout');
-  }
+  };
+
+  const handleSuccess = async (response: TokenResponse) => {
+    const accessToken = response?.access_token;
+
+    // Make a request to the Google People API to fetch user profile data
+    const profileResponse = await fetch(
+      'https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,photos,phoneNumbers',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+
+    const profileData = await profileResponse.json();
+    console.log(profileData);
+  };
+
+  const handleSignIn = useGoogleLogin({
+    onSuccess: (tokenResponse) => {
+      console.log(tokenResponse);
+      setIsAuth(true);
+      // setCurrentUser(user);
+      setLoading(false);
+      toastHelper.success('Login');
+      handleSuccess(tokenResponse);
+    },
+  });
 
   useEffect(() => {
     if (currentUser) {
@@ -45,28 +75,29 @@ const useAuth = () => {
       setIsAuth(false);
       setLoading(false);
     }
-  }, [currentUser])
+  }, [currentUser]);
 
   const values: IAuthValue = {
     isAuth,
     currentUser,
     loading,
     signIn: async (user: string) => {
-      setIsAuth(true);
-      setCurrentUser(user);
-      setLoading(false);
-      toastHelper.success('Login');
+      // setIsAuth(true);
+      // setCurrentUser(user);
+      // setLoading(false);
+      // toastHelper.success('Login');
+      handleSignIn();
     },
     signOut: handleSignOut,
-  }
+  };
 
-  return values
-}
+  return values;
+};
 
 export const AuthProvider = ({ children }: IAuthProvider) => {
   const auth = useAuth();
-  return <AuthContext.Provider value={auth}>{!auth.loading ? children : null}</AuthContext.Provider>
-}
+  return <AuthContext.Provider value={auth}>{!auth.loading ? children : null}</AuthContext.Provider>;
+};
 
 export default function AuthConsumer() {
   return useContext(AuthContext);

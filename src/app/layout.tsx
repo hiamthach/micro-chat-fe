@@ -3,9 +3,10 @@ import { Inter } from 'next/font/google';
 
 import { Toaster } from 'react-hot-toast';
 
-import './globals.css';
-import { PubNubReactProvider, ReactQueryProvider } from './providers';
 import { AuthProvider } from '@/hooks/useAuth';
+
+import './globals.css';
+import { GoogleAuthProvider, NextAuthProvider, PubNubReactProvider, ReactQueryProvider } from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -18,14 +19,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ReactQueryProvider>
-          <PubNubReactProvider>
-            <AuthProvider>
-              {children}
-            </AuthProvider>
-          </PubNubReactProvider>
-          <Toaster position="top-center" reverseOrder={true} />
-        </ReactQueryProvider>
+        <GoogleAuthProvider>
+          <ReactQueryProvider>
+            <PubNubReactProvider>
+              <NextAuthProvider>{children}</NextAuthProvider>
+            </PubNubReactProvider>
+            <Toaster position="top-center" reverseOrder={true} />
+          </ReactQueryProvider>
+        </GoogleAuthProvider>
       </body>
     </html>
   );

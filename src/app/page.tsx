@@ -1,42 +1,32 @@
 'use client';
 
-import AuthConsumer from '@/hooks/useAuth';
+import { GoogleLogin } from '@react-oauth/google';
+import { IconBrandGoogle, IconLogout } from '@tabler/icons-react';
 import { useState } from 'react';
 
-import { useIsomorphicLayoutEffect, useLocalStorage } from 'usehooks-ts';
+import AuthConsumer from '@/hooks/useAuth';
+
+import { useIsomorphicLayoutEffect } from 'usehooks-ts';
 
 export default function Home() {
   const [name, setName] = useState('');
 
-  const { currentUser, signIn } = AuthConsumer();
+  const { currentUser } = AuthConsumer();
 
-  useIsomorphicLayoutEffect(() => {
-    if (currentUser) {
-      window.location.href = '/chat';
-    }
-  }, [currentUser]);
+  // useIsomorphicLayoutEffect(() => {
+  //   if (currentUser) {
+  //     window.location.href = '/chat';
+  //   }
+  // }, [currentUser]);
 
   return (
     <main className="flex justify-center items-center min-h-screen">
-      <div className="h-fit w-[320px] text-center">
-        <input
-          type="text"
-          placeholder="Username"
-          className="input input-bordered w-full"
-          onChange={(event) => {
-            setName(event.target.value);
+      <div className="h-fit w-[320px] flex flex-col gap-4 justify-center">
+        <GoogleLogin
+          onSuccess={(cre) => {
+            console.log(cre.credential);
           }}
         />
-
-        <button
-          className="btn mt-4 mx-auto"
-          onClick={() => {
-            if (!name) return;
-            signIn(name);
-          }}
-        >
-          Next
-        </button>
       </div>
     </main>
   );
